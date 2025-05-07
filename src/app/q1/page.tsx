@@ -35,8 +35,13 @@ export default function NumbersPage() {
   };
 
   const handleFindClick = () => {
-    const randomNumber = Math.floor(Math.random() * 101); // Generates a random integer between 0 and 100
-    setNumber(randomNumber);
+    // const randomNumber = Math.floor(Math.random() * 100); // Generates a random integer between 0 and 100
+    const missingNumber = FindMissing(inputArray)
+    if (missingNumber === null){
+      setNumber(0);
+    }else{
+      setNumber(missingNumber);
+    }
   };
 
   return (
@@ -62,4 +67,28 @@ export default function NumbersPage() {
       </div>
     </div>
   );
+}
+
+export function FindMissing(arrStr:string):number|null{
+  try {
+    const parsedValue = JSON.parse(arrStr);
+    if (
+      Array.isArray(parsedValue) &&
+      parsedValue.length > 0 &&
+      typeof parsedValue[0] === "number"
+    ) {
+      const sorted_array:number[] = parsedValue.sort();
+      for (let i = 0; i < sorted_array.length -1; i++){
+        if(sorted_array[i]+1 !== sorted_array[i+1]){
+          return sorted_array[i]+1
+        }
+      }
+      return null
+    } else {
+      return null
+    }
+  } catch (error) {
+    console.error("Invalid JSON input:", error);
+    return null
+  }
 }
