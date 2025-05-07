@@ -52,10 +52,13 @@ export default function Q4Page() {
 
   const generateReport = () => {
     // todo generate
+    setProductNames(products.map((product)=>product.name))
+    setTotalSalePrice(products.reduce((sum,product)=>sum + product.price,0))
+    setInStockProducts(products.filter((product)=>product.inStock))
   };
 
   useEffect(() => {
-    // TODO: Implement the data fetching and processing logic here
+    // TODO: Implement the data fetching and processing logic here 
     // Update the state variables with above using `products` array above;
     generateReport();
   }, []);
