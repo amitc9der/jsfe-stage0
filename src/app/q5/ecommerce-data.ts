@@ -1,4 +1,4 @@
-// @ts-nocheck
+import { Order, Product, ProductSalesData, Shipment } from "./page";
 
 /* 
 Refactor below code for 
@@ -10,37 +10,15 @@ Refactor below code for
 5- Utilize ES6+ features where appropriate.
 
 */
-
-type Order = {
-  productId: string;
-  quantity: number;
-  orderId: string;
-}
-
-type Product = {
-  name: string;
-  prize: number;
-  stock: number;
-  orders?: string[];
-  shipments?: string[];
-}
-
-type Shipment = {
-  productId: string;
-  shipmentId: string;
-  quantity: string;
-}
 type Data = {
-  products: Product[];
+  products :Product[];
   orders: Order[];
   shipments: Shipment[];
 }
 
-type FinalData = {
-  [key: string]: Product
-}
+type FinalData = Record<number, ProductSalesData>;
 
-export function handleEcommerceData(data: Data): FinalData {
+export function handleEcommerceData(data: Data): FinalData{
   const products = data.products;
   const orders = data.orders;
   const shipments = data.shipments;
@@ -52,11 +30,12 @@ export function handleEcommerceData(data: Data): FinalData {
   return finalData;
 }
 
-function ProcessProducts(products: Product[]): FinalData {
-  const finalData: FinalData = {};
+function ProcessProducts(products: Product[]): FinalData{
+  const finalData:FinalData={}; 
+
   products.forEach(product => {
     if (product.stock > 0) {
-      finalData[product.id] = { ...product };
+      finalData[product.id] = { ...product,orders:[],shipments:[] };
     }
   });
   return finalData
@@ -86,11 +65,11 @@ function ProcessShipments(shipments: Shipment[], finalData: FinalData) {
 
 
 function RemoveOutOfStockProduct(finalData: FinalData) {
-  const outOfStockProducts = Object.keys(finalData)
-    .filter(key => finalData[key].stock <= 0)
-    .map((key) => finalData[key]);
+  const outOfStockProductIds = Object.entries(finalData)
+    .filter(([, product]) => product.stock <= 0)
+    .map(([productId]) => Number(productId));
 
-  outOfStockProducts.forEach(({ productId }) => {
+  outOfStockProductIds.forEach(productId => {
     delete finalData[productId];
   });
 }

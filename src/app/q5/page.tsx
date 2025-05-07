@@ -3,26 +3,26 @@
 import React from "react";
 import { handleEcommerceData } from "./ecommerce-data";
 
-interface Product {
+export interface Product {
   id: number;
   name: string;
   price: number;
   stock: number;
 }
 
-interface Order {
+export interface Order {
   orderId: string;
   productId: number;
   quantity: number;
 }
 
-interface Shipment {
+export interface Shipment {
   shipmentId: string;
   productId: number;
   quantity: number;
 }
 
-interface ProductSalesData {
+export interface ProductSalesData {
   name: string;
   price: number;
   stock: number;
