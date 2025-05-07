@@ -17,7 +17,7 @@ export default function Q2Page() {
       try {
         const response = await fetch("https://catfact.ninja/fact");
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          handleError(response);
         }
         const data = await response.json();
         setCatFact(data);
@@ -38,16 +38,50 @@ export default function Q2Page() {
 
       {error ? (
         <p className="text-red-500">Error fetching cat fact: {error}</p> // Display error message
-      ) : catFact ? (
-        <div className="fact-container mt-4 p-4 border rounded bg-gray-50">
-          <p className="fact text-lg mb-2">{catFact.fact}</p>
-          <p className="fact-length text-sm text-gray-600">
-            Character count: {catFact.length}
-          </p>
-        </div>
       ) : (
-        <p>Loading cat fact...</p> // Show loading state
+        <DisplayCatFactWithLoading isLoading={!catFact} catFact={catFact}/> 
       )}
     </div>
   );
+}
+
+//Using withLoading HOC
+const DisplayCatFactWithLoading = withLoading(DisplayFact)
+
+//Seperating Display Fact for Readiability
+function DisplayFact({catFact}:{catFact: Fact}) {
+  return (
+    <div className="fact-container mt-4 p-4 border rounded bg-gray-50">
+      <p className="fact text-lg mb-2">{catFact.fact}</p>
+      <p className="fact-length text-sm text-gray-600">
+        Character count: {catFact.length}
+      </p>
+    </div>
+  );
+}
+
+//Loading HOC
+function withLoading(ChildComponent:any){
+  return function WithLoadingComponent({isLoading=false,...props}){
+    if (isLoading){
+    return LoadingIndicator();
+    }
+    return <ChildComponent {...props} />
+  };
+}
+
+
+//Seperating so that when we have an svg we can use it on multiple times 
+function LoadingIndicator(){
+  return <p>Loading cat fact...</p> // Show loading state
+}
+
+//To Avoid Code Duplication better code readiability
+function handleError(response: Response) {
+  switch (response.status) {
+    case 404: //implment the rest of codes like 401,403,etc.
+      throw new Error(`Cat Fact Not Found`);
+    default:
+      throw new Error(`Unexpected Error: ${response.status}`);
+  }
 }
