@@ -11,54 +11,86 @@ Refactor below code for
 
 */
 
-export function handleEcommerceData(data) {
-  var products = data.products;
-  var orders = data.orders;
-  var shipments = data.shipments;
+type Order = {
+  productId: string;
+  quantity: number;
+  orderId: string;
+}
 
-  var finalData = {};
+type Product = {
+  name: string;
+  prize: number;
+  stock: number;
+  orders?: string[];
+  shipments?: string[];
+}
 
-  for (var i = 0; i < products.length; i++) {
-    if (products[i].stock > 0) {
-      finalData[products[i].id] = {
-        name: products[i].name,
-        price: products[i].price,
-        stock: products[i].stock,
-      };
-    }
-  }
+type Shipment = {
+  productId: string;
+  shipmentId: string;
+  quantity: string;
+}
+type Data = {
+  products: Product[];
+  orders: Order[];
+  shipments: Shipment[];
+}
 
-  for (var j = 0; j < orders.length; j++) {
-    var order = orders[j];
-    if (finalData[order.productId]) {
-      var productData = finalData[order.productId];
-      productData.stock -= order.quantity;
-      if (!productData.orders) productData.orders = [];
-      productData.orders.push(order.orderId);
-    }
-  }
+type FinalData = {
+  [key: string]: Product
+}
 
-  for (var k = 0; k < shipments.length; k++) {
-    var shipment = shipments[k];
-    if (finalData[shipment.productId]) {
-      var productDataForShipment = finalData[shipment.productId];
-      productDataForShipment.stock += shipment.quantity;
-      if (!productDataForShipment.shipments)
-        productDataForShipment.shipments = [];
-      productDataForShipment.shipments.push(shipment.shipmentId);
-    }
-  }
+export function handleEcommerceData(data: Data): FinalData {
+  const products = data.products;
+  const orders = data.orders;
+  const shipments = data.shipments;
 
-  var outOfStockProducts = [];
-  for (var productId in finalData) {
-    if (finalData[productId].stock <= 0) {
-      outOfStockProducts.push(productId);
-    }
-  }
-
-  for (var l = 0; l < outOfStockProducts.length; l++) {
-    delete finalData[outOfStockProducts[l]];
-  }
-
+  const finalData = ProcessProducts(products);
+  ProcessOrders(orders, finalData);
+  ProcessShipments(shipments, finalData);
+  RemoveOutOfStockProduct(finalData);
   return finalData;
+}
+
+function ProcessProducts(products: Product[]): FinalData {
+  const finalData: FinalData = {};
+  products.forEach(product => {
+    if (product.stock > 0) {
+      finalData[product.id] = { ...product };
+    }
+  });
+  return finalData
+}
+
+function ProcessOrders(orders: Order[], finalData: FinalData) {
+  orders.forEach(({ orderId, productId, quantity }) => {
+    if (finalData[productId]) {
+      const productData = { ...finalData[productId] };
+      productData.stock -= quantity;
+      productData.orders ??= [];
+      productData.orders.push(orderId);
+    }
+  })
+}
+
+function ProcessShipments(shipments: Shipment[], finalData: FinalData) {
+  shipments.forEach(({ productId, quantity, shipmentId }) => {
+    if (finalData[productId]) {
+      const productDataForShipment = finalData[productId];
+      productDataForShipment.stock += quantity;
+      productDataForShipment.shipments ??= [];
+      productDataForShipment.shipments.push(shipmentId);
+    }
+  })
+}
+
+
+function RemoveOutOfStockProduct(finalData: FinalData) {
+  const outOfStockProducts = Object.keys(finalData)
+    .filter(key => finalData[key].stock <= 0)
+    .map((key) => finalData[key]);
+
+  outOfStockProducts.forEach(({ productId }) => {
+    delete finalData[productId];
+  });
 }
